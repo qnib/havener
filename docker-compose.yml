@@ -1,5 +1,14 @@
 version: '3'
 services:
+  havener:
+    image: qnib/havener
+    ports:
+      - 80:9090
+      - 81:9091
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      HAVENER_PROXY_DISABLE: "true"
   http1:
     image: qnib/plain-httpcheck
     ports: ["8080:8080"]
