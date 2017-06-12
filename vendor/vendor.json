@@ -21,10 +21,16 @@
 			"revisionTime": "2017-06-08T22:14:41Z"
 		},
 		{
-			"checksumSHA1": "0f16D95P6TXnvOxFh8b2z2CPzmE=",
+			"checksumSHA1": "PdPhAvEGoA1DjOCv6MV0XdITGpo=",
 			"path": "github.com/codegangsta/cli",
-			"revision": "d70f47eeca3afd795160003bc6e28b001d60c67c",
-			"revisionTime": "2017-05-06T04:25:29Z"
+			"revision": "cf33a9befefdd6c6ea1a236ab6d546e797a62cbf",
+			"revisionTime": "2017-06-12T00:00:38Z"
+		},
+		{
+			"checksumSHA1": "WBBIUu60mjmq5SxfeQp+gd7qJGo=",
+			"path": "github.com/codegangsta/negroni",
+			"revision": "3019daf414cfd2c51de68c3a535707c0de6e3d83",
+			"revisionTime": "2017-06-04T13:12:13Z"
 		},
 		{
 			"checksumSHA1": "Gj+xR1VgFKKmFXYOJMnAczC3Znk=",
@@ -205,6 +211,18 @@
 			"path": "github.com/go-ini/ini",
 			"revision": "d3de07a94d22b4a0972deb4b96d790c2c0ce8333",
 			"revisionTime": "2017-06-02T20:46:24Z"
+		},
+		{
+			"checksumSHA1": "lXlnkSZorgVvcZqPvaF82dMOQ7o=",
+			"path": "github.com/go-zoo/bone",
+			"revision": "1cb672cf9dbefa9a441499367ccd41a28f8b6baf",
+			"revisionTime": "2017-04-27T14:05:34Z"
+		},
+		{
+			"checksumSHA1": "gKyBj05YkfuLFruAyPZ4KV9nFp8=",
+			"path": "github.com/julienschmidt/httprouter",
+			"revision": "975b5c4c7c21c0e3d2764200bf2aa8e34657ae6e",
+			"revisionTime": "2017-04-30T22:20:11Z"
 		},
 		{
 			"checksumSHA1": "OFNit1Qx2DdWhotfREKodDNUwCM=",

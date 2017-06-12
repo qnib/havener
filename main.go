@@ -4,7 +4,7 @@ import (
 	"os"
 	"github.com/codegangsta/cli"
 
-	"github.com/qnib/havener/v0"
+	"github.com/qnib/havener/v1"
 )
 
 func main() {
