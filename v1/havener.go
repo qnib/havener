@@ -8,6 +8,8 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/codegangsta/cli"
 	"github.com/zpatrick/go-config"
+	"net/http"
+	"sync"
 )
 
 const (
@@ -18,8 +20,6 @@ var (
 	ctx = context.Background()
 )
 
-
-
 func Run(appCtx *cli.Context) {
 	cfg := config.NewConfig([]config.Provider{config.NewCLI(appCtx, true)})
 
@@ -27,23 +27,35 @@ func Run(appCtx *cli.Context) {
 	if err != nil {
 		log.Panicf("Error parsing bind-host: %s", err.Error())
 	}
-	bindPort, err := cfg.Int("bind-port")
+	redirectPort, err := cfg.Int("redirect-port")
 	if err != nil {
-		log.Panicf("Error parsing bind-port: %s", err.Error())
+		log.Panicf("Error parsing redirect-port: %s", err.Error())
 	}
-	addr := fmt.Sprintf("%s:%d", bindHost, bindPort)
-	log.Printf("Start Listening on port '%s", addr)
+	rdAddr := fmt.Sprintf("%s:%d", bindHost, redirectPort)
+	proxyPort, err := cfg.Int("proxy-port")
+	if err != nil {
+		log.Panicf("Error parsing redirect-port: %s", err.Error())
+	}
+	proxyAddr := fmt.Sprintf("%s:%d", bindHost, proxyPort)
 	n := negroni.Classic()
-	redirect, _ := cfg.BoolOr("redirect", false)
-	switch {
-	case redirect:
-		mux := RedirectMux(cfg)
+	rdDisable, _ := cfg.BoolOr("redirect-disable", false)
+	proxyDisable, _ := cfg.BoolOr("proxy-disable", false)
+	rq := make(chan interface{})
+	reg := NewSrvRegistry(cfg)
+	go reg.ChanHandler(rq)
+	var wg sync.WaitGroup
+	if ! rdDisable {
+		mux := RedirectMux(cfg, rq)
 		n.UseHandler(mux)
-    /*default:
-		proxy := NewReverseProxy(cfg)
-		n.UseHandler(proxy.Handle)
-	*/
+		log.Printf("Start Listening on port '%s", rdAddr)
+		wg.Add(1)
+		go n.Run(rdAddr)
 	}
-	n.Run(addr)
+	if ! proxyDisable {
+		proxy := NewReverseProxy(cfg, rq)
+		log.Printf("Start Listening on port '%s", proxyAddr)
+		wg.Add(1)
+		go http.ListenAndServe(proxyAddr, proxy.Handle())
+	}
+	wg.Wait()
 }
-

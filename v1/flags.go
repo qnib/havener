@@ -4,9 +4,14 @@ import "github.com/codegangsta/cli"
 
 var Flags = []cli.Flag{
 	cli.BoolFlag{
-		Name:   "redirect",
-		Usage:  "Instead of reverse proxy, redirect the request",
-		EnvVar: "HAVENER_REDIRECT",
+		Name:   "redirect-disable",
+		Usage:  "Disable redirect server",
+		EnvVar: "HAVENER_REDIRECT_DISABLE",
+	},
+	cli.BoolFlag{
+		Name:   "proxy-disable",
+		Usage:  "Disable proxy server",
+		EnvVar: "HAVENER_PROXY_DISABLE",
 	},
 	cli.StringFlag{
 		Name:   "label-prefix",
@@ -33,10 +38,21 @@ var Flags = []cli.Flag{
 		EnvVar: "HAVENER_BIND_HOST",
 	},
 	cli.IntFlag{
-		Name:   "bind-port",
+		Name:   "redirect-port",
 		Value:  9090,
-		Usage:  "Bind port for proxy",
-		EnvVar: "HAVENER_BIND_PORT",
+		Usage:  "Bind port for redirect server",
+		EnvVar: "HAVENER_REDIRECT_PORT",
 	},
-
+	cli.IntFlag{
+		Name:   "proxy-port",
+		Value:  9091,
+		Usage:  "Bind port for proxy server",
+		EnvVar: "HAVENER_PROXY_PORT",
+	},
+	cli.IntFlag{
+		Name:   "service-tick-ms",
+		Value:  2000,
+		Usage:  "Update interval of service-registry",
+		EnvVar: "HAVENER_SERVICE_TICK_MS",
+	},
 }

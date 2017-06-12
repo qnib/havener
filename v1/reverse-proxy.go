@@ -6,48 +6,55 @@ import (
 	"strings"
 	"fmt"
 	"net/http"
-	"math/rand"
 	"net/http/httputil"
 	"github.com/zpatrick/go-config"
+
 )
 
 type ReverseProxy struct {
 	Cfg *config.Config
-	Reg SrvRegistry
+	RegQuery chan interface{}
 }
 
-func NewReverseProxy(cfg *config.Config) ReverseProxy {
-	return ReverseProxy{
+func NewReverseProxy(cfg *config.Config, rq chan interface{}) ReverseProxy {
+	rp := ReverseProxy{
 		Cfg: cfg,
-		Reg: NewSrvRegistry(cfg),
+		RegQuery: rq,
 	}
-}
-
-func (rp *ReverseProxy) BuildRegistry() {
-	rp.Reg.BuildRegistry()
+	return rp
 }
 
 // NewMultipleHostReverseProxy creates a reverse proxy that will randomly
 // select a host from the passed `targets`
 func (rp *ReverseProxy) Handle() *httputil.ReverseProxy {
-	reg := rp.Reg.Registry
 	director := func(req *http.Request) {
-		name, version, err := extractNameVersion(req.URL)
+		stack, service, err := extractNameVersion(req.URL)
 		if err != nil {
 			log.Print(err)
 			return
 		}
-		endpoints := reg[name+"/"+version]
-		if len(endpoints) == 0 {
-			log.Printf("Service/Version not found")
+		endpoint := rp.GetForward(stack, service)
+		if endpoint == "" {
+			log.Printf("'%s/%s' not found", stack, service)
 			return
+		} else {
+			log.Printf("'%s/%s' forwards to '%s", stack, service, endpoint)
 		}
 		req.URL.Scheme = "http"
-		req.URL.Host = endpoints[rand.Int()%len(endpoints)]
+		req.URL.Host = endpoint
 	}
 	return &httputil.ReverseProxy{
 		Director: director,
 	}
+}
+
+
+func (rp *ReverseProxy) GetForward(stack, service string) string {
+	rq := Request{Stack: stack, Service: service}
+	rp.RegQuery <- rq
+	key := <- rp.RegQuery
+	return key.(string)
+
 }
 
 func extractNameVersion(target *url.URL) (name, version string, err error) {

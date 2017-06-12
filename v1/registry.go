@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 	"math/rand"
 
 	"github.com/docker/docker/api/types"
@@ -19,7 +20,14 @@ type SrvRegistry struct {
 	Registry Registry
 }
 
+type Request struct {
+	Stack   string
+	Service string
+}
 
+func (rq *Request) String() string {
+	return rq.Stack+"/"+rq.Service
+}
 func NewSrvRegistry(cfg *config.Config) SrvRegistry {
 	sr := SrvRegistry{
 		Cfg: cfg,
@@ -43,6 +51,25 @@ func (sr *SrvRegistry) ConnectDocker() {
 		log.Printf("Connected to docker-engine 'v%s'", info.ServerVersion)
 	}
 }
+
+func (sr *SrvRegistry) ChanHandler(req chan interface{}) {
+	tickMs, _ := sr.Cfg.Int("service-tick-ms")
+	ticker := time.NewTicker(time.Duration(tickMs) * time.Millisecond).C
+	sr.BuildRegistry()
+	for {
+		select {
+		case <-ticker:
+			sr.BuildRegistry()
+		case r := <-req:
+			switch r.(type) {
+			case Request:
+				rq := r.(Request)
+				req <- sr.GetRedirect(rq.String())
+			}
+		}
+	}
+}
+
 
 func (sr *SrvRegistry) BuildRegistry() {
 	baseUrl, err := sr.Cfg.String("base-url")
@@ -92,7 +119,7 @@ func (sr *SrvRegistry) BuildRegistry() {
 		tupel := strings.Split(key, ":")
 		srv, port := tupel[0], tupel[1]
 		srvUri := srv //+ uCfg["uri"]
-		log.Printf("Add URI '%s' -> '%s:%s'", srvUri, baseUrl, port)
+		//log.Printf("Add URI '%s' -> '%s:%s'", srvUri, baseUrl, port)
 		if _, ok := registry[srvUri]; !ok {
 			registry[srvUri] = []string{}
 		}
@@ -102,5 +129,8 @@ func (sr *SrvRegistry) BuildRegistry() {
 }
 
 func (sr *SrvRegistry) GetRedirect(key string) string {
-	return sr.Registry[key][rand.Int()%len(sr.Registry[key])]
+	if rg, ok := sr.Registry[key]; ok {
+		return rg[rand.Int()%len(sr.Registry[key])]
+	}
+	return ""
 }

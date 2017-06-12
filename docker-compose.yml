@@ -12,4 +12,9 @@ services:
     labels:
       # in case only one ports is exposed, it will be served under the root /stack/service/
       - "org.qnib.havener.port.8088"
-
+  http3:
+    image: qnib/plain-httpcheck
+    ports: ["8083:8080"]
+    labels:
+      # in case only one ports is exposed, it will be served under the root /stack/service/
+      - "org.qnib.havener.port.8083"
