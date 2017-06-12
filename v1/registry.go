@@ -10,6 +10,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/zpatrick/go-config"
+	"reflect"
+	"sync"
 )
 
 type Registry map[string][]string
@@ -17,6 +19,7 @@ type Registry map[string][]string
 type SrvRegistry struct {
 	Cfg *config.Config
 	Cli *client.Client
+	mutex sync.Mutex
 	Registry Registry
 }
 
@@ -83,7 +86,6 @@ func (sr *SrvRegistry) BuildRegistry() {
 	lOpts := types.ServiceListOptions{}
 	services, _ := sr.Cli.ServiceList(ctx, lOpts)
 	_ = baseUrl
-	registry := Registry{}
 	uriCfg := map[string]map[string]string{}
 	for _, srv := range services {
 		for k, v := range srv.Spec.TaskTemplate.ContainerSpec.Labels {
@@ -114,21 +116,29 @@ func (sr *SrvRegistry) BuildRegistry() {
 			}
 		}
 	}
+	registry := Registry{}
 	for key, uCfg := range uriCfg {
-		_ = uCfg
 		tupel := strings.Split(key, ":")
 		srv, port := tupel[0], tupel[1]
-		srvUri := srv //+ uCfg["uri"]
-		//log.Printf("Add URI '%s' -> '%s:%s'", srvUri, baseUrl, port)
+		srvUri := srv
 		if _, ok := registry[srvUri]; !ok {
 			registry[srvUri] = []string{}
 		}
-		registry[srvUri] = append(registry[srvUri], fmt.Sprintf("%s:%s", baseUrl, port))
+		registry[srvUri] = append(registry[srvUri], fmt.Sprintf("%s://%s:%s", uCfg["proto"], baseUrl, port))
 	}
+	eq := reflect.DeepEqual(registry, sr.Registry)
+	if eq {
+		return
+	}
+	sr.mutex.Lock()
+	defer sr.mutex.Unlock()
+	log.Println("Update registry")
 	sr.Registry = registry
 }
 
 func (sr *SrvRegistry) GetRedirect(key string) string {
+	sr.mutex.Lock()
+	defer sr.mutex.Unlock()
 	if rg, ok := sr.Registry[key]; ok {
 		return rg[rand.Int()%len(sr.Registry[key])]
 	}
