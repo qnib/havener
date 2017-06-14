@@ -41,6 +41,11 @@ var Flags = []cli.Flag{
 		Usage:  "Bind host for proxy",
 		EnvVar: "HAVENER_BIND_HOST",
 	},
+	cli.StringFlag{
+		Name:   "skip-service",
+		Usage:  "Bind host for proxy",
+		EnvVar: "HAVENER_SKIP_SERVICE",
+	},
 	cli.IntFlag{
 		Name:   "redirect-port",
 		Value:  9090,

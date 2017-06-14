@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 	"math/rand"
+	"reflect"
+	"sync"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/zpatrick/go-config"
-	"reflect"
-	"sync"
 )
 
 type Registry map[string][]string
@@ -125,6 +125,11 @@ func (sr *SrvRegistry) BuildRegistry() {
 	services, _ := sr.Cli.ServiceList(ctx, lOpts)
 	uriCfg := map[string]map[string]string{}
 	for _, srv := range services {
+		skipSrv, err := sr.Cfg.String("skip-service")
+		if err == nil && skipSrv == srv.Spec.Name {
+			sr.Log("debug", fmt.Sprintf("Skip service %s", srv.Spec.Name))
+			continue
+		}
 		srvName := strings.Replace(srv.Spec.Name, "_", "/", 1)
 		for _, ports := range srv.Spec.EndpointSpec.Ports {
 			key := fmt.Sprintf("%s:%d", srvName, ports.PublishedPort)

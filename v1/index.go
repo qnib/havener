@@ -6,6 +6,7 @@ import (
 	"github.com/zpatrick/go-config"
 	"fmt"
 	"strings"
+	"sort"
 )
 
 
@@ -29,7 +30,6 @@ func (si *SrvIndex) Handler(w http.ResponseWriter, r *http.Request) {
 	si.RegQuery <- req
 	val := <- si.RegQuery
 	reg := val.(Registry)
-	_ = reg
 	fmt.Fprintf(w,`<body><html>
   <head>
     <title>Service Overview v%s</title>
@@ -51,10 +51,15 @@ func (si *SrvIndex) Handler(w http.ResponseWriter, r *http.Request) {
       </tr>
     </thead>
     <tbody>`, Version)
-	for k, lst := range reg {
+	keys := []string{}
+	for k := range reg {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
 		fmt.Fprintf(w, " <tr><td>%s</td><td>", k)
 		links := []string{}
-		for _, v := range lst {
+		for _, v := range reg[k] {
 			links = append(links, fmt.Sprintf("<a href='%s'>%s</a>", v, v))
 		}
 		fmt.Fprintf(w, strings.Join(links, ", "))
