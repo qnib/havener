@@ -50,7 +50,7 @@ func (rp *ReverseProxy) Handle() *httputil.ReverseProxy {
 
 
 func (rp *ReverseProxy) GetForward(stack, service string) string {
-	rq := Request{Stack: stack, Service: service}
+	rq := NewSrvRequest(stack, service)
 	rp.RegQuery <- rq
 	key := <- rp.RegQuery
 	return key.(string)

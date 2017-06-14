@@ -10,4 +10,5 @@ RUN govendor fetch -v +m \
 FROM qnib/uplain-init
 
 COPY --from=0 /usr/local/bin/havener /usr/local/bin/
+COPY ./v1/static /usr/share/havener/static
 CMD ["havener"]

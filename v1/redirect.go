@@ -23,10 +23,14 @@ func NewRedirector(cfg *config.Config, rq chan interface{}) Redirector {
 func (rh *Redirector) GetRedirect(r *http.Request) string {
 	stack := bone.GetValue(r, "stack")
 	service := bone.GetValue(r, "service")
-	rq := Request{Stack: stack, Service: service}
+	rq := NewSrvRequest(stack, service)
 	rh.RegQuery <- rq
-	key := <- rh.RegQuery
-	return key.(string)
+	val := <- rh.RegQuery
+	switch val.(type) {
+	case string:
+		return val.(string)
+	}
+	return ""
 
 }
 
@@ -43,7 +47,12 @@ func (rh *Redirector) Handler(w http.ResponseWriter, r *http.Request) {
 
 func RedirectMux(cfg *config.Config, rq chan interface{}) *bone.Mux {
 	rh := NewRedirector(cfg, rq)
+	si := NewSrvIndex(cfg, rq)
 	mux := bone.New()
+	mux.Get("/", http.HandlerFunc(si.Handler))
+	mux.Get("/static/css/bootstrap.min.css",  http.Handler(http.StripPrefix("/static/css", http.FileServer(http.Dir("/usr/share/havener/static/css")))))
+	mux.Get("/static/js/bootstrap.min.js",  http.Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("/usr/share/havener/static/js")))))
+	mux.Get("/static/js/jquery.min.js",  http.Handler(http.StripPrefix("/static/js", http.FileServer(http.Dir("/usr/share/havener/static/js")))))
 	mux.Get("/:stack/:service", http.HandlerFunc(rh.Handler))
 	return mux
 }

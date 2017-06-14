@@ -9,6 +9,11 @@ var Flags = []cli.Flag{
 		EnvVar: "HAVENER_REDIRECT_DISABLE",
 	},
 	cli.BoolFlag{
+		Name:   "debug",
+		Usage:  "Enable debugging",
+		EnvVar: "HAVENER_DEBUG",
+	},
+	cli.BoolFlag{
 		Name:   "proxy-disable",
 		Usage:  "Disable proxy server",
 		EnvVar: "HAVENER_PROXY_DISABLE",
@@ -21,7 +26,6 @@ var Flags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:   "base-url",
-		Value:  "localhost",
 		Usage:  "Base URL of proxy",
 		EnvVar: "HAVENER_BASE_URL",
 	},
