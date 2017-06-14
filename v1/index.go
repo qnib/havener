@@ -30,18 +30,18 @@ func (si *SrvIndex) Handler(w http.ResponseWriter, r *http.Request) {
 	val := <- si.RegQuery
 	reg := val.(Registry)
 	_ = reg
-	fmt.Fprintln(w,`<body><html>
+	fmt.Fprintf(w,`<body><html>
   <head>
-    <title>Service Overview</title>
+    <title>Service Overview v%s</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
   </head>
-  `)
-	fmt.Fprintln(w, `<div class="container">
-  <h2>SWARM Service Overview</h2>
+  `, Version)
+	fmt.Fprintf(w, `<div class="container">
+  <h2>SWARM Service Overview v%s</h2>
   <p>Services according to the SWARM service API</p>
   <table class="table table-striped">
     <thead>
@@ -50,7 +50,7 @@ func (si *SrvIndex) Handler(w http.ResponseWriter, r *http.Request) {
         <th>Redirects</th>
       </tr>
     </thead>
-    <tbody>`)
+    <tbody>`, Version)
 	for k, lst := range reg {
 		fmt.Fprintf(w, " <tr><td>%s</td><td>", k)
 		links := []string{}
